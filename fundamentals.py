@@ -1,10 +1,45 @@
 import datetime as datetime
 
-#Exmple for dznamic properties
-class AnyDataClass:
-  def __init__(self, dictionary):
-    for k, v in dictionary.items():
-      setattr(self, k, v)
+#Example for dynamic properties
+#class AnyDataClass:
+#  def __init__(self, dictionary):
+#    for k, v in dictionary.items():
+#      setattr(self, k, v)
+
+import math
+import pandas_datareader.data as web
+import pandas_datareader as pdr
+import numpy as np
+import pandas as pd
+import copy
+import requests
+
+class Financial_Modelling_Rest_Client:
+  API_KEY = "6b5abd973247689c7e82d6f016ed183c"
+  URL_Prefix = "https://financialmodelingprep.com/api/v3"
+  INCOME_STATEMENT = "income-statement"
+  BALANCE_SHEET = "balance-sheet-statement"
+  COMPANY_PROFILE = "profile"
+
+class Financials_Rest_Client (Financial_Modelling_Rest_Client):
+      def __init__(self):
+        super().__init__()
+
+      def get_Anual_Income_Statement(self, ticker):
+        print( f"{self.URL_Prefix}/{self.INCOME_STATEMENT}/{ticker}?apikey={self.API_KEY}")
+        return f"{self.URL_Prefix}/{self.INCOME_STATEMENT}/{ticker}?apikey={self.API_KEY}"
+  
+      def get_Balance_Sheet(self, ticker):
+        return f"{self.URL_Prefix}/{self.BALANCE_SHEET}/{ticker}?apikey={self.API_KEY}"
+
+class Company_Profile_Rest_Client (Financial_Modelling_Rest_Client):
+      def __init__(self):
+            super().__init__()
+
+      def get_Company_Profile(self, ticker):
+            print( f"{self.URL_Prefix}/{self.COMPANY_PROFILE}/{ticker}?apikey={self.API_KEY}")
+            return f"{self.URL_Prefix}/{self.COMPANY_PROFILE}/{ticker}?apikey={self.API_KEY}"
+
 
 class Anual_Income_Statement:
   date = None
@@ -42,7 +77,7 @@ class Anual_Income_Statement:
   finalLink = None
 
   def __init__(self):
-    x = 0
+    super().__init__
   
   def getFY(self):
     if self.date != None :
@@ -55,7 +90,6 @@ class Income_statement_Manager:
   
   @staticmethod
   def transform_annual_income_statement(req_income_json):
-    x = 0
     ais = Anual_Income_Statement()
     #2015-12-31
     ais.date = datetime.datetime.strptime(req_income_json["date"], '%Y-%m-%d')
@@ -93,15 +127,53 @@ class Income_statement_Manager:
     ais.finalLink = req_income_json["finalLink"]
     return ais
 
-import numpy as np
+class Company_Profile_Manager:
+  @staticmethod
+  def transform_company_profile(req_comp_profile_json):
+        cp = Company_Profile()
+        cp.symbol = req_comp_profile_json["symbol"]
+        cp.price = req_comp_profile_json["price"]
+        cp.beta = req_comp_profile_json["beta"]
+        cp.volAvg = req_comp_profile_json["volAvg"]
+        cp.mktCap = req_comp_profile_json["mktCap"]
+        cp.lastDiv = req_comp_profile_json["lastDiv"]
+        cp.range = req_comp_profile_json["range"]
+        cp.changes = req_comp_profile_json["changes"]
+        cp.companyName = req_comp_profile_json["companyName"]
+        cp.exchange = req_comp_profile_json["exchange"]
+        cp.exchangeShortName = req_comp_profile_json["exchangeShortName"]
+        cp.industry = req_comp_profile_json["industry"]
+        cp.website = req_comp_profile_json["website"]
+        cp.description = req_comp_profile_json["description"]
+        cp.ceo = req_comp_profile_json["ceo"]
+        cp.sector = req_comp_profile_json["sector"]
+        cp.country = req_comp_profile_json["country"]
+        cp.fullTimeEmployees = req_comp_profile_json["fullTimeEmployees"]
+        cp.phone = req_comp_profile_json["phone"]
+        cp.address = req_comp_profile_json["address"]
+        cp.city = req_comp_profile_json["city"]
+        cp.state = req_comp_profile_json["state"]
+        cp.zip = req_comp_profile_json["zip"]
+        cp.dcfDiff = req_comp_profile_json["dcfDiff"]
+        cp.dcf = req_comp_profile_json["dcf"]
+        cp.image = req_comp_profile_json["image"]
+        return cp
+  
+  @staticmethod
+  def load_Company_Profile(self, ticker):
+    url = Company_Profile_Rest_Client.get_Company_Profile(ticker)
+    req_profile = requests.get(url)
+    req_profile = req_profile.json()
+    company_profile = self.transform_company_profile(req_profile)
+    return company_profile
+    
 
 class Income_Statement:
   date = None
   anual_income_statements = {}
 
   def __init__(self):
-    #Balance_Sheet
-    x = 0
+    super().__init__()
 
   def add_Annual_Income_Statement(self, ais):
     year = ais.getFY()
@@ -115,28 +187,13 @@ class Income_Statement:
     #for key,value in self.anual_income_statements.items():
     #  print(key)
 
-class Financials_Rest_Client:
-  API_KEY = "6b5abd973247689c7e82d6f016ed183c"
-  URL_Prefix = "https://financialmodelingprep.com/api/v3"
-  INCOME_STATEMENT = "income-statement"
-  BALANCE_SHEET = "balance-sheet-statement"
-  
-  def get_Anual_Income_Statement(self, ticker):
-    print( f"{self.URL_Prefix}/{self.INCOME_STATEMENT}/{ticker}?apikey={self.API_KEY}")
-    return f"{self.URL_Prefix}/{self.INCOME_STATEMENT}/{ticker}?apikey={self.API_KEY}"
-  
-  def get_Balance_Sheet(self, ticker):
-    return f"{self.URL_Prefix}/{self.BALANCE_SHEET}/{ticker}?apikey={self.API_KEY}"
-
-import copy
-import requests
-
 class Financials:
   rest_client = Financials_Rest_Client()
   income_statement = Income_Statement()
 
   def __init__(self, ticker):
-    self.load_Income_Statement(ticker)        
+    self.load_Income_Statement(ticker)
+    super().__init__()      
 
   def load_Income_Statement(self, ticker):
     url = self.rest_client.get_Anual_Income_Statement(ticker)
@@ -153,15 +210,74 @@ class Financials:
       #equity_i = year['totalStockholdersEquity']
       #equity.append(equity_i)
 
+class Stocks:
+  stocks_df = None
+  year_data_df = None
+
+  def __init__(self, ticker = 'GOOG', start = datetime.datetime(2016, 1, 1), end = datetime.datetime(2019, 1, 1)):
+    self.stocks_df = web.DataReader(ticker, data_source='yahoo', start=start, end=end)
+    self.stocks_df['year'] = self.stocks_df.DatetimeIndex(self.stocks_df.index).year
+    self.stocks_df['year-mean'] = self.stocks_df.groupby('year')['Adj Close'].mean()
+    super().__init__()
+
+  def initYearData(self):
+    self.year_data_df = pd.DataFrame({'year': self.stocks_df.groupby('year'), 'mean': self.stocks_df.groupby('year')['Adj Close'].mean(), 'max': self.stocks_df.groupby('year')['Adj Close'].max(), 'min': self.stocks_df.groupby('year')['Adj Close'].min()}, columns=['year', 'mean', 'max', 'min'])
+    self.year_data_df['voletality'] = (self.year_data_df['max']-self.year_data_df['min'])/self.year_data_df['mean']
+    self.year_data_df['mean_next_year'] = self.year_data_df['mean'].shift(periods=1)
+    self.year_data_df['grow'] = (1.-self.year_data_df['mean_next_year']/self.year_data_df['mean'])*100
+    self.year_data_df['grow'] = (1.-self.year_data_df['mean_next_year']/self.year_data_df['mean'])*100 
+  
+  def compound_annual_grow_rate(self, stock_start_price = 0, stock_end_price = 0, num_years = 1):
+    return (stock_end_price / stock_start_price) ** (1 / (num_years - 1)) - 1
+
+  def plot_data(self):
+    ax = self.year_data_df.plot('year',['mean', 'max', 'min'])
+    ax1 = ax.twinx()
+    self.year_data_df.plot('year','grow',ax=ax1, color='r')
+
+class Company_Profile:
+  symbol = None
+  price = None
+  beta = None
+  volAvg = None
+  mktCap = None
+  lastDiv = None
+  range = None
+  changes = None
+  companyName = None
+  exchange = None
+  exchangeShortName = None
+  industry = None
+  website = None
+  description = None
+  ceo = None
+  sector = None
+  country = None
+  fullTimeEmployees = None
+  phone = None
+  address = None
+  city = None
+  state = None
+  zip = None
+  dcfDiff = None
+  dcf = None
+  image = None
+
+  def __init__(self):
+        super().__init__
+
 
 class Company:
   name = None
   ticker = None
   financials = None
+  stocks = None
 
-  def __init__ (self, ticker):
+  def __init__ (self, ticker = 'GOOG'):
     self.ticker = ticker
     self.financials = Financials(ticker)
+    self.stocks = Stocks(ticker)
+    super().__init__()
    
   def __str__(self):
     res = f"Company Info\n"
@@ -174,8 +290,10 @@ class Company:
   def get_Annual_Statement_Years(self):
     return self.financials.income_statement.get_Years()
 
+  def plot(self):
+    self.stocks.plot_data()
+
 comp = Company("GOOG")
 print(comp)
 years = comp.get_Annual_Statement_Years()
-for year in years:
-  print(year)
+comp.plot()
