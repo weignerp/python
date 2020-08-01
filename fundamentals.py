@@ -87,7 +87,6 @@ class Anual_Income_Statement:
     return None
 
 class Income_statement_Manager:
-  
   @staticmethod
   def transform_annual_income_statement(req_income_json):
     ais = Anual_Income_Statement()
@@ -129,42 +128,21 @@ class Income_statement_Manager:
 
 class Company_Profile_Manager:
   @staticmethod
-  def transform_company_profile(req_comp_profile_json):
+  def transform_company_profile(req_comp_profiles_json):
         cp = Company_Profile()
-        cp.symbol = req_comp_profile_json["symbol"]
-        cp.price = req_comp_profile_json["price"]
-        cp.beta = req_comp_profile_json["beta"]
-        cp.volAvg = req_comp_profile_json["volAvg"]
-        cp.mktCap = req_comp_profile_json["mktCap"]
-        cp.lastDiv = req_comp_profile_json["lastDiv"]
-        cp.range = req_comp_profile_json["range"]
-        cp.changes = req_comp_profile_json["changes"]
-        cp.companyName = req_comp_profile_json["companyName"]
-        cp.exchange = req_comp_profile_json["exchange"]
-        cp.exchangeShortName = req_comp_profile_json["exchangeShortName"]
-        cp.industry = req_comp_profile_json["industry"]
-        cp.website = req_comp_profile_json["website"]
-        cp.description = req_comp_profile_json["description"]
-        cp.ceo = req_comp_profile_json["ceo"]
-        cp.sector = req_comp_profile_json["sector"]
-        cp.country = req_comp_profile_json["country"]
-        cp.fullTimeEmployees = req_comp_profile_json["fullTimeEmployees"]
-        cp.phone = req_comp_profile_json["phone"]
-        cp.address = req_comp_profile_json["address"]
-        cp.city = req_comp_profile_json["city"]
-        cp.state = req_comp_profile_json["state"]
-        cp.zip = req_comp_profile_json["zip"]
-        cp.dcfDiff = req_comp_profile_json["dcfDiff"]
-        cp.dcf = req_comp_profile_json["dcf"]
-        cp.image = req_comp_profile_json["image"]
-        return cp
+        for json_profile in req_comp_profiles_json:
+            for key in json_profile:
+              print(key, '->', json_profile[key])
+              cp.__setattr__(key, json_profile[key])
+            return cp
   
   @staticmethod
-  def load_Company_Profile(self, ticker):
-    url = Company_Profile_Rest_Client.get_Company_Profile(ticker)
+  def load_Company_Profile(ticker):
+    rc = Company_Profile_Rest_Client()
+    url = rc.get_Company_Profile(ticker)
     req_profile = requests.get(url)
     req_profile = req_profile.json()
-    company_profile = self.transform_company_profile(req_profile)
+    company_profile = Company_Profile_Manager.transform_company_profile(req_profile)
     return company_profile
     
 
@@ -216,7 +194,8 @@ class Stocks:
 
   def __init__(self, ticker = 'GOOG', start = datetime.datetime(2016, 1, 1), end = datetime.datetime(2019, 1, 1)):
     self.stocks_df = web.DataReader(ticker, data_source='yahoo', start=start, end=end)
-    self.stocks_df['year'] = self.stocks_df.DatetimeIndex(self.stocks_df.index).year
+    #self.stocks_df['year'] = self.stocks_df.DatetimeIndex.year
+    self.stocks_df['year'] = self.stocks_df.index.year
     self.stocks_df['year-mean'] = self.stocks_df.groupby('year')['Adj Close'].mean()
     super().__init__()
 
@@ -266,17 +245,52 @@ class Company_Profile:
   def __init__(self):
         super().__init__
 
+  def __str__(self):
+    res = f"Company Profile\n"
+    res = res + f"--------------------------------\n"
+    res = res + f"symbol\t{self.symbol}\n"
+    res = res + f"price\t{self.price}\n"
+    res = res + f"beta\t{self.beta}\n"
+    res = res + f"volAvg\t{self.volAvg}\n"
+    res = res + f"mktCap\t{self.mktCap}\n"
+    res = res + f"lastDiv\t{self.lastDiv}\n"
+    res = res + f"range\t{self.range}\n"
+    res = res + f"changes\t{self.changes}\n"
+    res = res + f"companyName\t{self.companyName}\n"
+    res = res + f"exchange\t{self.exchange}\n"
+    res = res + f"exchangeShortName\t{self.exchangeShortName}\n"
+    res = res + f"industry\t{self.industry}\n"
+    res = res + f"website\t{self.website}\n"
+    res = res + f"description\t{self.description}\n"
+    res = res + f"ceo\t{self.ceo}\n"
+    res = res + f"sector\t{self.sector}\n"
+    res = res + f"country\t{self.country}\n"
+    res = res + f"fullTimeEmployees\t{self.fullTimeEmployees}\n"
+    res = res + f"phone\t{self.phone}\n"
+    res = res + f"address\t{self.address}\n"
+    res = res + f"city\t{self.city}\n"
+    res = res + f"state\t{self.state}\n"
+    res = res + f"zip\t{self.zip}\n"
+    res = res + f"dcfDiff\t{self.dcfDiff}\n"
+    res = res + f"dcf\t{self.dcf}\n"
+    res = res + f"image\t{self.image}\n"
+    res = res + f"--------------------------------\n"
+    return res
 
 class Company:
   name = None
   ticker = None
   financials = None
   stocks = None
+  company_profile = None
 
   def __init__ (self, ticker = 'GOOG'):
     self.ticker = ticker
+    self.company_profile = Company_Profile_Manager.load_Company_Profile(ticker)
+    self.name = self.company_profile.companyName
     self.financials = Financials(ticker)
     self.stocks = Stocks(ticker)
+    
     super().__init__()
    
   def __str__(self):
@@ -295,5 +309,6 @@ class Company:
 
 comp = Company("GOOG")
 print(comp)
+print(comp.company_profile)
 years = comp.get_Annual_Statement_Years()
-comp.plot()
+#comp.plot()
