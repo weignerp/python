@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import copy
 import requests
+import inspect
 
 class Financial_Modelling_Rest_Client:
   API_KEY = "6b5abd973247689c7e82d6f016ed183c"
@@ -21,11 +22,11 @@ class Financial_Modelling_Rest_Client:
   BALANCE_SHEET = "balance-sheet-statement"
   COMPANY_PROFILE = "profile"
 
-class Financials_Rest_Client (Financial_Modelling_Rest_Client):
+class Financial_Rest_Client (Financial_Modelling_Rest_Client):
       def __init__(self):
         super().__init__()
 
-      def get_Anual_Income_Statement(self, ticker):
+      def get_Annual_Income_Statement(self, ticker):
         print( f"{self.URL_Prefix}/{self.INCOME_STATEMENT}/{ticker}?apikey={self.API_KEY}")
         return f"{self.URL_Prefix}/{self.INCOME_STATEMENT}/{ticker}?apikey={self.API_KEY}"
   
@@ -40,8 +41,56 @@ class Company_Profile_Rest_Client (Financial_Modelling_Rest_Client):
             print( f"{self.URL_Prefix}/{self.COMPANY_PROFILE}/{ticker}?apikey={self.API_KEY}")
             return f"{self.URL_Prefix}/{self.COMPANY_PROFILE}/{ticker}?apikey={self.API_KEY}"
 
-
-class Anual_Income_Statement:
+class Value_Investment:      
+      prop_types = None
+      prop_formats = None
+      
+      def convert_to_type(self, value, type = None, format = '%Y-%m-%d'):
+            if isinstance(type, datetime.datetime):
+              return datetime.datetime.strptime(value, format)
+            elif isinstance(type, int):
+              return int(value)
+            else:
+              return value
+            
+      def init_prop_types_and_formats(self, length=0, keys=None):
+        if keys == None:
+            self.prop_types = np.full(length, type(""))
+            self.prop_formats = np.full(length, '%Y-%m-%d')
+            return
+        self.prop_types = {}
+        self.prop_formats = {}
+        for item in keys:
+            self.prop_types[item] = type("")
+            self.prop_formats[item] = '%Y-%m-%d'            
+          
+      def parse_properties(self, prop_dicts):
+            for attr in prop_dicts.keys():
+                  try:
+                    new_value = self.convert_to_type(prop_dicts[attr], self.prop_types[attr], self.prop_formats[attr])
+                    self.__setattr__(attr, new_value)
+                  except AttributeError:
+                    print(f"The attribute:{attr} is not a part of the current object!")
+      
+      def parse_json_data(self, json_data=None):
+        if json_data != None:              
+              if self.prop_types == None or self.prop_formats == None:                    
+                    self.init_prop_types_and_formats(len(json_data))
+              self.parse_properties(json_data)    
+      
+      def get_properties(self):
+            props = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
+            return props
+      
+      def __str__(self):
+            props = self.get_properties()
+            res = f"Object Name:\t" + type(self).__name__ + f"\n"
+            res = res + f"--------------------------------\n"
+            for item in props:
+                  res = res + f"{item}:\t" + self.__getattribute__(item)  + "\n"
+            res = res + f"--------------------------------\n"    
+            
+class Annual_Income_Statement(Value_Investment):
   date = None
   symbol = None
   fillingDate = None
@@ -76,9 +125,25 @@ class Anual_Income_Statement:
   link = None
   finalLink = None
 
-  def __init__(self):
-    super().__init__
+  def __init__(self, json_data = None, prop_types = None, prop_formats = None):
+    super().__init__()
+    self.init_prop_types_and_formats(len(json_data), json_data.keys())
+    self.prepare_real_types_and_formats()
+    self.parse_json_data(json_data)
   
+  def prepare_real_types_and_formats(self):
+  #TODO: Add all types
+        try:
+          #dates
+          self.prop_types["date"] = type(datetime.datetime)
+          self.prop_formats["date"] = '%Y-%m-%d'
+          self.prop_types["fillingDate"] = type(datetime.datetime)
+          self.prop_formats["fillingDate"] = '%Y-%m-%d'
+          self.prop_types["acceptedDate"] = type(datetime.datetime)
+          self.prop_formats["acceptedDate"] = '%Y-%m-%d'
+        except KeyError:
+          print(f"The Key does not exist!")
+      
   def getFY(self):
     if self.date != None :
       if isinstance(self.date, datetime.datetime):
@@ -86,10 +151,10 @@ class Anual_Income_Statement:
     # Better to return an Exception
     return None
 
-class Income_statement_Manager:
+class Income_statement_Manager():
   @staticmethod
   def transform_annual_income_statement(req_income_json):
-    ais = Anual_Income_Statement()
+    ais = Annual_Income_Statement()
     #2015-12-31
     ais.date = datetime.datetime.strptime(req_income_json["date"], '%Y-%m-%d')
     ais.symbol = req_income_json["symbol"]
@@ -126,29 +191,21 @@ class Income_statement_Manager:
     ais.finalLink = req_income_json["finalLink"]
     return ais
 
-class Company_Profile_Manager:
-  @staticmethod
-  def transform_company_profile(req_comp_profiles_json):
-        cp = Company_Profile()
-        for json_profile in req_comp_profiles_json:
-            for key in json_profile:
-              print(key, '->', json_profile[key])
-              cp.__setattr__(key, json_profile[key])
-            return cp
+class Company_Profile_Manager:  
   
   @staticmethod
   def load_Company_Profile(ticker):
     rc = Company_Profile_Rest_Client()
     url = rc.get_Company_Profile(ticker)
     req_profile = requests.get(url)
-    req_profile = req_profile.json()
-    company_profile = Company_Profile_Manager.transform_company_profile(req_profile)
-    return company_profile
+    req_profile = req_profile.json()    
+    return req_profile
     
 
-class Income_Statement:
+
+class Income_Statement(Value_Investment):
   date = None
-  anual_income_statements = {}
+  annual_income_statements = {}
 
   def __init__(self):
     super().__init__()
@@ -156,17 +213,17 @@ class Income_Statement:
   def add_Annual_Income_Statement(self, ais):
     year = ais.getFY()
     if year != None:      
-      self.anual_income_statements[str(year)] = copy.copy(ais)
+      self.annual_income_statements[str(year)] = copy.copy(ais)
       return True
     return False
 
   def get_Years(self):
-    return np.array(list(self.anual_income_statements.keys()))
-    #for key,value in self.anual_income_statements.items():
+    return np.array(list(self.annual_income_statements.keys()))
+    #for key,value in self.annual_income_statements.items():
     #  print(key)
 
-class Financials:
-  rest_client = Financials_Rest_Client()
+class Financial(Value_Investment):
+  rest_client = Financial_Rest_Client()
   income_statement = Income_Statement()
 
   def __init__(self, ticker):
@@ -174,11 +231,13 @@ class Financials:
     super().__init__()      
 
   def load_Income_Statement(self, ticker):
-    url = self.rest_client.get_Anual_Income_Statement(ticker)
+    url = self.rest_client.get_Annual_Income_Statement(ticker)
     req_incomes = requests.get(url)
     req_incomes = req_incomes.json()
     for income in req_incomes:
-      ais = Income_statement_Manager.transform_annual_income_statement(income)
+#      ais = Income_statement_Manager.transform_annual_income_statement(income)
+      
+      ais = Annual_Income_Statement(income)
       self.income_statement.add_Annual_Income_Statement(ais)
       
     
@@ -188,7 +247,7 @@ class Financials:
       #equity_i = year['totalStockholdersEquity']
       #equity.append(equity_i)
 
-class Stocks:
+class Stocks(Value_Investment):
   stocks_df = None
   year_data_df = None
 
@@ -201,7 +260,7 @@ class Stocks:
 
   def initYearData(self):
     self.year_data_df = pd.DataFrame({'year': self.stocks_df.groupby('year'), 'mean': self.stocks_df.groupby('year')['Adj Close'].mean(), 'max': self.stocks_df.groupby('year')['Adj Close'].max(), 'min': self.stocks_df.groupby('year')['Adj Close'].min()}, columns=['year', 'mean', 'max', 'min'])
-    self.year_data_df['voletality'] = (self.year_data_df['max']-self.year_data_df['min'])/self.year_data_df['mean']
+    self.year_data_df['volatility'] = (self.year_data_df['max']-self.year_data_df['min'])/self.year_data_df['mean']
     self.year_data_df['mean_next_year'] = self.year_data_df['mean'].shift(periods=1)
     self.year_data_df['grow'] = (1.-self.year_data_df['mean_next_year']/self.year_data_df['mean'])*100
     self.year_data_df['grow'] = (1.-self.year_data_df['mean_next_year']/self.year_data_df['mean'])*100 
@@ -214,7 +273,7 @@ class Stocks:
     ax1 = ax.twinx()
     self.year_data_df.plot('year','grow',ax=ax1, color='r')
 
-class Company_Profile:
+class Company_Profile(Value_Investment):
   symbol = None
   price = None
   beta = None
@@ -242,10 +301,19 @@ class Company_Profile:
   dcf = None
   image = None
 
-  def __init__(self):
+  def __init__(self, ticker):
         super().__init__
+        req_profile = Company_Profile_Manager.load_Company_Profile(ticker)
+        self.transform_company_profile(req_profile)
+  
+  def transform_company_profile(self, req_comp_profiles_json):
+        for json_profile in req_comp_profiles_json:
+            for key in json_profile:
+              #print(key, '->', json_profile[key])
+              self.__setattr__(key, json_profile[key])
 
-  def __str__(self):
+  
+  ''' def __str__(self):
     res = f"Company Profile\n"
     res = res + f"--------------------------------\n"
     res = res + f"symbol\t{self.symbol}\n"
@@ -275,20 +343,20 @@ class Company_Profile:
     res = res + f"dcf\t{self.dcf}\n"
     res = res + f"image\t{self.image}\n"
     res = res + f"--------------------------------\n"
-    return res
+    return res '''
 
-class Company:
+class Company(Value_Investment):
   name = None
   ticker = None
-  financials = None
+  financial = None
   stocks = None
   company_profile = None
 
   def __init__ (self, ticker = 'GOOG'):
     self.ticker = ticker
-    self.company_profile = Company_Profile_Manager.load_Company_Profile(ticker)
+    self.company_profile = Company_Profile(ticker)
     self.name = self.company_profile.companyName
-    self.financials = Financials(ticker)
+    self.financial = Financial(ticker)
     self.stocks = Stocks(ticker)
     
     super().__init__()
@@ -302,7 +370,7 @@ class Company:
     return res
     
   def get_Annual_Statement_Years(self):
-    return self.financials.income_statement.get_Years()
+    return self.financial.income_statement.get_Years()
 
   def plot(self):
     self.stocks.plot_data()
