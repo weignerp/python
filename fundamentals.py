@@ -86,9 +86,12 @@ class Value_Investment:
             props = self.get_properties()
             res = f"Object Name:\t" + type(self).__name__ + f"\n"
             res = res + f"--------------------------------\n"
-            for item in props:
-                  res = res + f"{item}:\t" + self.__getattribute__(item)  + "\n"
+            for k, item in props:
+                  if not str(k).startswith("__"):
+                        res = res + f"{k}:\t{item}\n" #+ self.__getattribute__(item)  + "\n"
             res = res + f"--------------------------------\n"    
+            return res
+          
             
 class Annual_Income_Statement(Value_Investment):
   date = None
@@ -127,6 +130,8 @@ class Annual_Income_Statement(Value_Investment):
 
   def __init__(self, json_data = None, prop_types = None, prop_formats = None):
     super().__init__()
+    if not type(json_data) == dictionary:
+          return
     self.init_prop_types_and_formats(len(json_data), json_data.keys())
     self.prepare_real_types_and_formats()
     self.parse_json_data(json_data)
@@ -361,13 +366,13 @@ class Company(Value_Investment):
     
     super().__init__()
    
-  def __str__(self):
+  ''' def __str__(self):
     res = f"Company Info\n"
     res = res + f"--------------------------------\n"
     res = res + f"Name:\t{self.name}\n"
     res = res + f"Ticker:\t{self.ticker}\n"
     res = res + f"--------------------------------\n"
-    return res
+    return res '''
     
   def get_Annual_Statement_Years(self):
     return self.financial.income_statement.get_Years()
@@ -377,6 +382,6 @@ class Company(Value_Investment):
 
 comp = Company("GOOG")
 print(comp)
-print(comp.company_profile)
+#print(comp.company_profile)
 years = comp.get_Annual_Statement_Years()
 #comp.plot()

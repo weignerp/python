@@ -1,6 +1,6 @@
 {
     "_python.pythonPath": "C:\\Python38",
-    "python.pythonPath": "c:\\ProgramData\\Anaconda3",
+    "python.pythonPath": "C:\\ProgramData\\Anaconda3\\python.exe",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true
 }
