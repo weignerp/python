@@ -22,7 +22,10 @@ def load_xml_to_dataclass(file_path: str):
 
 
 def dataclass_to_dict(dataclass_instance):
-    return json.loads(json.dumps(asdict(dataclass_instance), default=str))
+    data = asdict(dataclass_instance)
+    k = get_all_keys(data)
+    print(list(k))
+    return json.loads(json.dumps(data, default=str))
 
 
 def save_json_to_file(data, file_path):
@@ -41,11 +44,25 @@ def serialize_datetime(obj):
     raise TypeError("Type not serializable")
 
 
+def get_all_keys(d, parent_key="", sep="."):
+    keys = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        keys.append(new_key)
+        if isinstance(v, dict):
+            keys.extend(get_all_keys(v, new_key, sep=sep))
+        elif isinstance(v, list):
+            for i, item in enumerate(v):
+                if isinstance(item, dict):
+                    keys.extend(get_all_keys(item, f"{new_key}[{i}]", sep=sep))
+    return keys
+
+
 def main():
     ownership_document = load_xml_to_dataclass(XML_DOC)
     data = dataclass_to_dict(ownership_document)
-    save_json_to_file(data, "d:/ownership_document.json")
-    print(type(ownership_document.period_of_report))
+    # save_json_to_file(data, "d:/ownership_document.json")
+    # print(type(ownership_document.period_of_report))
     exit()
     print(ownership_document.issuer.issuer_name)
     print(ownership_document.issuer.issuer_trading_symbol)

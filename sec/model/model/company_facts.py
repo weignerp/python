@@ -12,7 +12,7 @@ import requests
 
 
 COMPANY_FACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK"
-FOLDER = "D:/workspace/vscode-workspace/python/python/sec/model/model/company_facts"
+FOLDER = "D:/workspace/vscode-workspace/python/python/data/model/company_facts"
 
 
 # https://data.sec.gov/api/xbrl/companyconcept/CIK0001490281/us-gaap/AccountsPayableCurrent.json

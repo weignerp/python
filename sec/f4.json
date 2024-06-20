@@ -1,0 +1,33 @@
+{
+  "schema_version": "X0508",
+  "document_type": "4",
+  "period_of_report": [
+    2024,
+    6,
+    14,
+    null
+  ],
+  "not_subject_to_section16": false,
+  "form4_transactions_reported": null,
+  "issuer": {
+    "issuer_cik": "0001490281",
+  },
+  "reporting_owner": [
+    {
+      "reporting_owner_id": {
+        "rpt_owner_cik": "0001842522",
+        "rpt_owner_ccc": null,
+        "rpt_owner_name": "Harinstein Jason"
+      },
+      "reporting_owner_address": {
+        "rpt_owner_street1": "C/O GROUPON, INC.",
+        "rpt_owner_street2": "35 W. WACKER, FLOOR 25",
+        "rpt_owner_city": "CHICAGO",
+        "rpt_owner_state": "ReportingAddressRptOwnerState.IL",
+        "rpt_owner_zip_code": "60601",
+        "rpt_owner_state_description": "",
+        "rpt_owner_good_address": null
+      }
+    }
+  ]
+}
