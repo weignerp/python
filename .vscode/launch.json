@@ -6,10 +6,49 @@
     "configurations": [
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Convert mp4 to mp3",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "d:/Users/PWeigner/Downloads/Dokážeme znalosti z projektů přetavit v působivý talk_-20240515_133305-Záznam schůzky.mp4",
+                "${command:pickArgs}"
+            ]
+        },
+        {
+            "name": "Python: Audio to Text",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--speechKey",
+                "d04b64bd9c814b4fa15319c5e0a75c41",
+                "--languageKey",
+                "fb10fe15f6cc4a818e2e98493e73887d",
+                "--languageEndpoint",
+                "https://eastus.api.cognitive.microsoft.com/",
+                "--speechRegion",
+                "eastus",
+                "--input",
+                "D:/Hlas_003_sd.wav",
+                "--format",
+                "wav",
+                "--language",
+                "cs",
+                "--locale",
+                "cs-CZ",
+                "--offline",
+                "--output",
+                "d:/Hlasovy_vystup.txt",
+            ]
         }
     ]
 }

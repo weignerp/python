@@ -1,0 +1,18 @@
+nazev	ulice	cp	co	mesto	psc	tel	fax	ds
+Vrchní soud v Praze	Nám. Hrdinů 	1300	11	Praha 4 - Nusle	140 00	261196111	261196441	3fvabbh	podatelna@vsoud.pha.justice.cz
+
+
+
+    ppp.id,
+	ppp.predpis_id,
+	ppp.poradi,
+	ppp.splatnost,
+	ppp.castka,
+	ppp.mena,
+	ppp.polozky,
+	ppp.poznamka,
+	ppp.mgr_source_id,
+	ppp.mgr_source_table,
+	ppp.zaplaceno,
+	ppp.prodleni_dny,
+	ppp.castka_nezaplacena
